@@ -1,0 +1,8 @@
+{% extends 'base.html' %}
+{% block content %}
+    <h2>Search for Cheaper cards</h2>
+    <form method="get">
+        {{ form.as_p }}
+        <button type="submit">Search</button>
+    </form>
+{% endblock %}
