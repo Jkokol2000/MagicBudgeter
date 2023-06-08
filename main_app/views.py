@@ -1,6 +1,8 @@
 from django.shortcuts import render
 from .forms import SearchForm
-from .card_api import search_cards
+from .card_api import search_cards, GetOracleSearch
+import mtg_parser
+import re
 
 # Create your views here.
 def home(request):
@@ -10,20 +12,24 @@ def about(request):
     return render(request, 'about.html')
 
 def find_cheaper_cards(request):
-    if request.method == 'GET' and 'query' in request.GET:
-        form = SearchForm(request.GET)
-        if form.is_valid():
-            query = form.cleaned_data['query']
-            price_minimum = form.cleaned_data['query']
-            try:
-                price_minimum = float(request.GET.get('price_minimum').replace(',', ''))
-            except ValueError:
-                price_minimum = 5.0
+    if request.method == 'GET' and 'decklist' in request.GET and 'price_minimum' in request.GET:
+        decklist = request.GET.get('decklist')
+        price_minimum = float(request.GET.get('price_minimum'))
 
-            cards = search_cards(query)
-            cheaper_cards = [card for card in cards if card['prices'].get('usd') and float(card['prices']['usd']) <= price_minimum]
+        try:
+            cards = mtg_parser.decklist.parse_deck(decklist)
+        except:
+            print("An Exception occurred")
+        else:
+            for card in cards: 
+                card_name = re.sub(r'^\d\s+', '', card.name)
+                scryfall_card = search_cards(card_name)
+                if float(scryfall_card["prices"].get("usd")) > price_minimum:
+                    print(GetOracleSearch(scryfall_card))
+                else:
+                    continue
 
-            return render(request, 'results.html', {'cheaper_cards': cheaper_cards})
+            return render(request, 'results.html')
     else:
         form = SearchForm()
     return render(request, 'search_input.html', {'form': form})

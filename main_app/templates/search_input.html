@@ -1,8 +1,10 @@
 {% extends 'base.html' %}
 {% block content %}
     <h2>Search for Cheaper cards</h2>
-    <form method="get">
-        {{ form.as_p }}
-        <button type="submit">Search</button>
+    <form method="GET" action="{% url 'search_cards' %}">
+        {{ form.decklist.label_tag }} {{ form.decklist }}
+        {{ form.price_minimum.label_tag }} {{ form.price_minimum }}
+        <input type="submit" value="Search">
     </form>
+    
 {% endblock %}
