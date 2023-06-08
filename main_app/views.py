@@ -1,6 +1,6 @@
 from django.shortcuts import render
 from .forms import SearchForm
-from .card_api import search_cards, GetOracleSearch
+from .card_api import search_cards, GetTaggedSearch
 import mtg_parser
 import re
 
@@ -25,7 +25,7 @@ def find_cheaper_cards(request):
                 card_name = re.sub(r'^\d\s+', '', card.name)
                 scryfall_card = search_cards(card_name)
                 if float(scryfall_card["prices"].get("usd")) > price_minimum:
-                    print(GetOracleSearch(scryfall_card))
+                    print(GetTaggedSearch(scryfall_card))
                 else:
                     continue
 
