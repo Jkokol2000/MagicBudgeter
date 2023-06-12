@@ -1,34 +1,27 @@
-{% extends "base.html" %}
+{% extends 'base.html' %}
 
 {% block content %}
-  <h2>Cheaper Cards</h2>
-
-  {% if cheaper_cards %}
+    <h2>Results</h2>
     <table>
-      <thead>
-        <tr>
-          <th>Name</th>
-          <th>Price</th>
-          <th>Image</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for card in cheaper_cards %}
-          <tr>
-            <td>{{ card.name }}</td>
-            <td>${{ card.prices.usd }}</td>
-            <td>
-              {% if card.image_uris %}
-                <img src="{{ card.image_uris.small }}" alt="{{ card.name }}" />
-              {% else %}
-                <span>No image available</span>
-              {% endif %}
-            </td>
-          </tr>
-        {% endfor %}
-      </tbody>
+        <thead>
+            <tr>
+                <th>Expensive Card</th>
+                <th>Cheaper Alternatives</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for expensive_card_name, card_data in card_results.items %}
+                <tr>
+                    <td>{{ card_data.0.name }} - ${{ card_data.0.prices.usd }}</td>
+                    <td>
+                        <ul>
+                            {% for cheaper_card in card_data.1 %}
+                                <li>{{ cheaper_card.name }} - ${{ cheaper_card.prices.usd }}</li>
+                            {% endfor %}
+                        </ul>
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
     </table>
-  {% else %}
-    <p>No cheaper cards found.</p>
-  {% endif %}
 {% endblock %}

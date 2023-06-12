@@ -63,14 +63,14 @@ def assign_tags(effect, tags):
             
     return assigned_tags
 
-def search_similar_cards(effect, card_id, card_type, card_color_identity, order="usd", sort_dir="asc"):
+def search_similar_cards(effect, card_type, card_color_identity, order="usd", sort_dir="asc"):
     effect_words = effect.split()
     effect_query = '+'.join(f"oracle%3A%22{word}%22" for word in effect_words)
     type_query = f"type%3A%22{card_type}%22"
     colors = "".join(card_color_identity)
-    color_identity_query = f"id%3A{colors}"
-
-    url = f"https://api.scryfall.com/cards/search?order={order}&dir={sort_dir}&q={effect_query}+{type_query}+id%21%3D{card_id}+{color_identity_query}"
+    if card_color_identity != []:
+        color_identity_query = f"id%3D{colors.lower()}+-id%3Ac"
+        url = f"https://api.scryfall.com/cards/search?order={order}&dir={sort_dir}&q={effect_query}+{type_query}+{color_identity_query}"
     print(url)
     response = requests.get(url)
     time.sleep(0.05)
@@ -83,9 +83,26 @@ def search_similar_cards(effect, card_id, card_type, card_color_identity, order=
         print(f"Unexpected response JSON: {response_json}")
         return f"Error: {response_json.get('message', 'Unknown error')}"
 
+
+
 def similarity_ratio(string1, string2):
     sequence_matcher = difflib.SequenceMatcher(None, string1, string2)
     return sequence_matcher.ratio()
+
+def filter_similar_cards_above_threshold(cards, threshold, initial_card):
+    return [(card_name, similarity) for card_name, similarity in cards if similarity >= threshold and card_name != initial_card]
+
+def get_card_prices(cards):
+    cards_with_prices = []
+    for card_name, _ in cards:
+        similar_card = search_cards(card_name)
+        if similar_card is not None:
+            card_price = similar_card['prices'].get('usd') if similar_card['prices'].get('usd') is not None else 0
+            cards_with_prices.append((card_name, float(card_price)))
+    return cards_with_prices
+
+def sort_cards_by_price(cards):
+    return sorted(cards, key=lambda x: x[1], reverse=True)
 
     
 def GetTaggedSearch(card):
@@ -102,21 +119,37 @@ def GetTaggedSearch(card):
     tagged_effects = [assign_tags(effect, tags) for effect in simple_effects]
     for effect, tags_assigned in zip(simple_effects, tagged_effects):
         simplified_effects = [tag_effects[tag](card) if tag in tag_effects else effect for tag in tags_assigned]
-        card_id = card.get('id')
         card_type_line = card.get('type_line')
         split_card_type = card_type_line.split()
         main_card_type = split_card_type[0]
         all_similar_cards = []
         for simplified_effect in simplified_effects:
-                similar_cards = search_similar_cards(simplified_effect, card_id, main_card_type, card_color_identity)
+                similar_cards = search_similar_cards(simplified_effect, main_card_type, card_color_identity)
 
         for similar_card in similar_cards:
             similar_card_oracle_text = similar_card.get('oracle_text')
             if similar_card_oracle_text is not None:
                 similarity = similarity_ratio(simplified_effect, similar_card_oracle_text)
-                all_similar_cards.append((similar_card.get('name'), similarity))
+                all_similar_cards.append((similar_card, similarity)) 
 
-    all_similar_cards.sort(key=lambda x: x[1], reverse=True)
-    sorted_similar_cards = [card_similarity[0] for card_similarity in all_similar_cards]
+    # Calculate the similarity between the initial card's full effect and similar cards' full effect
+        all_similar_cards_with_full_effect_similarity = []
+        for similar_card, similarity in all_similar_cards:  # Use similar_card directly instead of card_name
+            if similar_card is not None:
+                similar_card_effect = similar_card.get("oracle_text")
+                if similar_card_effect is not None:
+                    full_effect_similarity = similarity_ratio(card_effect, similar_card_effect)
+                    all_similar_cards_with_full_effect_similarity.append((similar_card, full_effect_similarity))
+
+
+    similarity_threshold = 0.3
+    similar_cards_above_threshold = filter_similar_cards_above_threshold(all_similar_cards_with_full_effect_similarity, similarity_threshold, card)
+
+    # Get card prices
+    cards_with_prices = get_card_prices(similar_cards_above_threshold)
+
+    # Sort the array of tuples based on the price
+    sorted_similar_cards_by_price = sort_cards_by_price(cards_with_prices)
+    sorted_similar_cards = [card_info[0] for card_info in sorted_similar_cards_by_price] 
 
     return sorted_similar_cards
