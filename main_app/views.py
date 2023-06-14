@@ -29,6 +29,7 @@ def find_cheaper_cards(request):
                     similarCards = GetTaggedSearch(scryfall_card)
                     cheaper_cards = []
                     for card in similarCards:
+                        print(card['prices']['usd'])
                         if float(card['prices']["usd"]) < price_minimum:
                             cheaper_cards.append(card)
                     card_results[scryfall_card['name']] = (scryfall_card, cheaper_cards)

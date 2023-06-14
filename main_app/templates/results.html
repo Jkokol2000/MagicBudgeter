@@ -12,16 +12,27 @@
         <tbody>
             {% for expensive_card_name, card_data in card_results.items %}
                 <tr>
-                    <td>{{ card_data.0.name }} - ${{ card_data.0.prices.usd }}</td>
+                    <td><image src="{{ card_data.0.image_uris.small}}"> - ${{ card_data.0.prices.usd }}</td>
                     <td>
-                        <ul>
-                            {% for cheaper_card in card_data.1 %}
-                                <li>{{ cheaper_card.name }} - ${{ cheaper_card.prices.usd }}</li>
+                        <div id="carousel-{{forloop.counter}}" class="carousel slide" data-ride="carousel" data-interval="false">
+                            <div class="carousel-inner">
+                        
+                                {% for cheaper_card in card_data.1 %}
+
+                                <div class="{% if forloop.first %}carousel-item active{% else %}carousel-item{% endif %}">
+                                    <img src="{{ cheaper_card.image_uris.small }}" alt="Cheaper alternative card">
+                                    ${{ cheaper_card.prices.usd}}
+                                </div>
                             {% endfor %}
-                        </ul>
+                            
+                            </div>
+                            <a class="left carousel-control" href="#carousel-{{forloop.counter}}" data-slide="prev" onclick="$('#carousel').carousel('prev')">‹</a>
+                            <a class="right carousel-control" href="#carousel-{{forloop.counter}}" data-slide="next" onclick="$('#carousel').carousel('next')">›</a>
+                        </div>
                     </td>
                 </tr>
             {% endfor %}
         </tbody>
     </table>
+    
 {% endblock %}

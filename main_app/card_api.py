@@ -39,7 +39,9 @@ def search_cards(query):
     if 'data' in response_json:
         cards = response_json['data']
         if len(cards) > 0:
-            return cards[0]
+            only_usd_cards = [card for card in cards if card["prices"].get('usd') is not None]
+            sorted_usd_cards = sort_cards_by_price(only_usd_cards)
+            return sorted_usd_cards[0] if len(sorted_usd_cards) > 0 else None
         else:
             return None
     else:
