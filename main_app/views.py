@@ -25,14 +25,14 @@ def find_cheaper_cards(request):
             for card in cards:
                 card_name = re.sub(r'^\d\s+', '', card.name)
                 scryfall_card = search_cards(card_name)
-                if float(scryfall_card['prices']['usd']) > price_minimum:
+                if scryfall_card['prices']['usd'] is not None and float(scryfall_card['prices']['usd']) > price_minimum:
                     similarCards = GetTaggedSearch(scryfall_card)
-                    cheaper_cards = []
-                    for card in similarCards:
-                        print(card['prices']['usd'])
-                        if float(card['prices']["usd"]) < price_minimum:
-                            cheaper_cards.append(card)
-                    card_results[scryfall_card['name']] = (scryfall_card, cheaper_cards)
+                    cheaper_cards = [card for card in similarCards if float(card['prices']["usd"]) < price_minimum]
+
+                    # Sort the cheaper cards by USD price, from highest to lowest
+                    sorted_cheaper_cards = sorted(cheaper_cards, key=lambda card: float(card['prices']['usd']), reverse=True)
+
+                    card_results[scryfall_card['name']] = (scryfall_card, sorted_cheaper_cards)
                 else:
                     continue
 
@@ -40,6 +40,5 @@ def find_cheaper_cards(request):
     else:
         form = SearchForm()
     return render(request, 'search_input.html', {'form': form})
-
 
 

@@ -2,8 +2,8 @@
 
 {% block content %}
     <h2>Results</h2>
-    <table>
-        <thead>
+    <table class="table">
+        <thead >
             <tr>
                 <th>Expensive Card</th>
                 <th>Cheaper Alternatives</th>
@@ -12,22 +12,26 @@
         <tbody>
             {% for expensive_card_name, card_data in card_results.items %}
                 <tr>
-                    <td><image src="{{ card_data.0.image_uris.small}}"> - ${{ card_data.0.prices.usd }}</td>
+                    <td >
+                        <div class="mr-3">
+                            <img src="{{ card_data.0.image_uris.small}}" alt="Expensive card">
+                            - ${{ card_data.0.prices.usd }}
+                        </div>
+                    </td>
                     <td>
                         <div id="carousel-{{forloop.counter}}" class="carousel slide" data-ride="carousel" data-interval="false">
                             <div class="carousel-inner">
                         
                                 {% for cheaper_card in card_data.1 %}
-
-                                <div class="{% if forloop.first %}carousel-item active{% else %}carousel-item{% endif %}">
-                                    <img src="{{ cheaper_card.image_uris.small }}" alt="Cheaper alternative card">
-                                    ${{ cheaper_card.prices.usd}}
-                                </div>
-                            {% endfor %}
+                                    <div class="{% if forloop.first %}carousel-item active{% else %}carousel-item{% endif %}">
+                                        <img src="{{ cheaper_card.image_uris.small }}" alt="Cheaper alternative card">
+                                        ${{ cheaper_card.prices.usd}}
+                                    </div>
+                                {% endfor %}
                             
                             </div>
-                            <a class="left carousel-control" href="#carousel-{{forloop.counter}}" data-slide="prev" onclick="$('#carousel').carousel('prev')">‹</a>
-                            <a class="right carousel-control" href="#carousel-{{forloop.counter}}" data-slide="next" onclick="$('#carousel').carousel('next')">›</a>
+                            <a class="left carousel-control" href="#carousel-{{forloop.counter}}" data-slide="prev" onclick="$('#carousel-{{forloop.counter}}').carousel('prev')">‹</a>
+                            <a class="right carousel-control" href="#carousel-{{forloop.counter}}" data-slide="next" onclick="$('#carousel-{{forloop.counter}}').carousel('next')">›</a>
                         </div>
                     </td>
                 </tr>
